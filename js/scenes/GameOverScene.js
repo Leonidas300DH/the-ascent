@@ -5,6 +5,8 @@ class GameOverScene extends Phaser.Scene {
 
     init(data) {
         this.finalAltitude = data.altitude || 0;
+        this.elapsedTime = data.time || 0;
+        this.deathReason = data.reason || 'fall';
     }
 
     create() {
@@ -15,7 +17,7 @@ class GameOverScene extends Phaser.Scene {
         this.add.rectangle(width / 2, height / 2, width, height, 0x0a0a1a, 0.9);
 
         // Game Over title
-        const title = this.add.text(width / 2, height / 3, 'GAME OVER', {
+        const title = this.add.text(width / 2, height / 4, 'GAME OVER', {
             fontFamily: 'monospace',
             fontSize: '48px',
             color: '#E74C3C',
@@ -24,10 +26,39 @@ class GameOverScene extends Phaser.Scene {
         });
         title.setOrigin(0.5);
 
-        // Altitude reached
-        const altText = this.add.text(width / 2, height / 2, `Altitude Reached: ${this.finalAltitude}m`, {
+        // Death cause
+        const causeMessages = {
+            'fall': '💀 Tu es tombé dans le vide',
+            'frozen': '🥶 Tu as gelé sur place',
+            'avalanche': '❄️ Enseveli par l\'avalanche'
+        };
+        const causeText = this.add.text(width / 2, height / 3 + 20, causeMessages[this.deathReason] || causeMessages['fall'], {
             fontFamily: 'monospace',
-            fontSize: '24px',
+            fontSize: '20px',
+            color: '#FF6B6B',
+            stroke: '#000000',
+            strokeThickness: 3
+        });
+        causeText.setOrigin(0.5);
+
+        // Time
+        const minutes = Math.floor(this.elapsedTime / 60000);
+        const seconds = Math.floor((this.elapsedTime % 60000) / 1000);
+        const timeStr = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+
+        const timeText = this.add.text(width / 2, height / 2 - 20, `⏱️ Temps: ${timeStr}`, {
+            fontFamily: 'monospace',
+            fontSize: '22px',
+            color: '#FFFFFF',
+            stroke: '#000000',
+            strokeThickness: 3
+        });
+        timeText.setOrigin(0.5);
+
+        // Altitude reached
+        const altText = this.add.text(width / 2, height / 2 + 20, `⛰️ Altitude: ${this.finalAltitude}m`, {
+            fontFamily: 'monospace',
+            fontSize: '22px',
             color: '#87CEEB',
             stroke: '#000000',
             strokeThickness: 3
@@ -36,7 +67,7 @@ class GameOverScene extends Phaser.Scene {
 
         // Progress toward summit
         const progress = Math.floor((this.finalAltitude / LEVEL.SUMMIT_ALTITUDE) * 100);
-        const progressText = this.add.text(width / 2, height / 2 + 40, `(${progress}% of summit)`, {
+        const progressText = this.add.text(width / 2, height / 2 + 60, `(${progress}% du sommet)`, {
             fontFamily: 'monospace',
             fontSize: '16px',
             color: '#888888'
@@ -44,7 +75,7 @@ class GameOverScene extends Phaser.Scene {
         progressText.setOrigin(0.5);
 
         // Restart prompt
-        const restartText = this.add.text(width / 2, height * 0.7, '[ Press SPACE to try again ]', {
+        const restartText = this.add.text(width / 2, height * 0.8, '[ Appuie sur ESPACE pour réessayer ]', {
             fontFamily: 'monospace',
             fontSize: '18px',
             color: '#FFFFFF'
@@ -65,7 +96,6 @@ class GameOverScene extends Phaser.Scene {
             this.scene.start('GameScene');
         });
 
-        // Also allow clicking
         this.input.once('pointerdown', () => {
             this.scene.start('GameScene');
         });

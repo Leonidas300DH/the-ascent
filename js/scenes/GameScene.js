@@ -95,13 +95,16 @@ class GameScene extends Phaser.Scene {
 
         // Check fail condition - player falls below camera view
         if (this.player.sprite.y > this.cameras.main.scrollY + GAME_HEIGHT + 50) {
-            this.triggerGameOver();
+            this.triggerGameOver('fall');
         }
     }
 
-    triggerGameOver() {
+    triggerGameOver(reason = 'fall') {
         if (this.isGameOver) return;
         this.isGameOver = true;
+
+        // Get elapsed time
+        const elapsedTime = this.hud.getElapsedTime();
 
         // Freeze physics
         this.physics.pause();
@@ -113,7 +116,9 @@ class GameScene extends Phaser.Scene {
         // Transition to game over scene
         this.time.delayedCall(600, () => {
             this.scene.start('GameOverScene', {
-                altitude: Math.floor(this.maxAltitudeReached)
+                altitude: Math.floor(this.maxAltitudeReached),
+                time: elapsedTime,
+                reason: reason
             });
         });
     }
@@ -121,6 +126,9 @@ class GameScene extends Phaser.Scene {
     triggerVictory() {
         if (this.hasWon) return;
         this.hasWon = true;
+
+        // Get elapsed time
+        const elapsedTime = this.hud.getElapsedTime();
 
         // Celebration effect
         this.cameras.main.flash(500, 255, 215, 0);
@@ -132,7 +140,8 @@ class GameScene extends Phaser.Scene {
         // Transition to victory scene
         this.time.delayedCall(1500, () => {
             this.scene.start('VictoryScene', {
-                altitude: LEVEL.SUMMIT_ALTITUDE
+                altitude: LEVEL.SUMMIT_ALTITUDE,
+                time: elapsedTime
             });
         });
     }

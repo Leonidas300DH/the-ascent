@@ -5,9 +5,13 @@ class HUD {
         this.altitudeBar = null;
         this.playerMarker = null;
         this.altitudeText = null;
+        this.timerText = null;
+        this.startTime = 0;
     }
 
     create() {
+        // Record start time
+        this.startTime = this.scene.time.now;
         // Fixed HUD container
         this.container = this.scene.add.container(0, 0);
         this.container.setScrollFactor(0);
@@ -65,6 +69,17 @@ class HUD {
         this.container.add(summitLabel);
 
         this.gaugeConfig = { x: gaugeX, y: gaugeY, width: gaugeWidth, height: gaugeHeight };
+
+        // Timer display (top right)
+        this.timerText = this.scene.add.text(GAME_WIDTH - 20, 20, '00:00', {
+            fontFamily: 'monospace',
+            fontSize: '24px',
+            color: '#FFFFFF',
+            stroke: '#000000',
+            strokeThickness: 4
+        });
+        this.timerText.setOrigin(1, 0);
+        this.container.add(this.timerText);
     }
 
     update(playerAltitude) {
@@ -100,5 +115,21 @@ class HUD {
         const displayAltitude = Math.floor(playerAltitude);
         this.altitudeText.setText(`${displayAltitude}m`);
         this.altitudeText.y = Math.max(y + 20, Math.min(GAME_HEIGHT - 60, markerY - 7));
+
+        // Update timer
+        const elapsed = this.scene.time.now - this.startTime;
+        const minutes = Math.floor(elapsed / 60000);
+        const seconds = Math.floor((elapsed % 60000) / 1000);
+        this.timerText.setText(`${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`);
+    }
+
+    getElapsedTime() {
+        return this.scene.time.now - this.startTime;
+    }
+
+    formatTime(ms) {
+        const minutes = Math.floor(ms / 60000);
+        const seconds = Math.floor((ms % 60000) / 1000);
+        return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
     }
 }
