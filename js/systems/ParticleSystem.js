@@ -6,7 +6,7 @@ class SnowParticleSystem {
     }
 
     create() {
-        // Create snow particle emitter
+        // Create snow particle emitter with base settings
         this.emitter = this.scene.add.particles(0, 0, 'snowflake', {
             x: { min: -50, max: GAME_WIDTH + 50 },
             y: -50,
@@ -14,76 +14,64 @@ class SnowParticleSystem {
             speedY: { min: 50, max: 150 },
             speedX: { min: -30, max: 30 },
             scale: { min: 0.3, max: 1.2 },
-            alpha: { start: 0.9, end: 0.2 },
-            frequency: 200,
-            quantity: 1
+            alpha: { start: 0.9, end: 0.3 },
+            frequency: 150,
+            quantity: 2
         });
 
         this.emitter.setDepth(200);
     }
 
     update(cameraY, playerAltitude) {
-        // Move emitter with camera
-        this.emitter.particleY = cameraY - 50;
+        if (!this.emitter) return;
 
-        // Intensity scales DRAMATICALLY with altitude
+        // Move emitter with camera - use setEmitZone or position
+        this.emitter.setPosition(0, cameraY - 50);
+
+        // Intensity scales with altitude
         const progress = Math.min(1, playerAltitude / LEVEL.SUMMIT_ALTITUDE);
+        const easedProgress = Math.pow(progress, 0.6); // Faster ramp-up
 
-        // Use exponential curve for more dramatic effect at higher altitudes
-        const easedProgress = Math.pow(progress, 0.7); // Faster ramp-up
-
-        // Very high max rate for intense blizzard at summit
-        const maxRate = 400;
-        const targetIntensity = Phaser.Math.Linear(
-            VISUALS.SNOW_BASE_RATE,
-            maxRate,
-            easedProgress
-        );
-
-        // Smooth intensity transition
-        this.currentIntensity = Phaser.Math.Linear(
-            this.currentIntensity,
-            targetIntensity,
-            0.08
-        );
-
-        // Update frequency (lower = more particles)
-        // Base: 300 (light), Summit: 5 (blizzard)
-        const frequency = Math.max(5, 300 - this.currentIntensity * 0.75);
-        this.emitter.frequency = frequency;
-
-        // Increase quantity dramatically at higher altitudes
-        // Base: 1, Summit: 10
-        const quantity = Math.max(1, Math.floor(1 + easedProgress * 9));
-        this.emitter.quantity = quantity;
-
-        // Scale particles larger at summit for more visual impact
-        const minScale = 0.3 + easedProgress * 0.3;
-        const maxScale = 1.0 + easedProgress * 0.8;
-        this.emitter.scaleX = { min: minScale, max: maxScale };
-        this.emitter.scaleY = { min: minScale, max: maxScale };
-
-        // Update wind effect
+        // Calculate wind
         let extraWind = 0;
         if (this.scene.windSystem) {
             extraWind = this.scene.windSystem.getForce();
         }
+        const altitudeWind = easedProgress * 100;
 
-        // More horizontal chaos at altitude
-        const altitudeWind = easedProgress * 120;
+        // Update emitter config - recreate ops for dynamic values
+        // Frequency: lower = more particles (150 at base, 15 at summit)
+        const newFrequency = Math.max(15, 150 - easedProgress * 135);
 
-        this.emitter.speedX = {
-            min: -50 - altitudeWind + extraWind,
-            max: 50 + altitudeWind + extraWind
-        };
+        // Quantity: more at altitude (2 at base, 8 at summit)
+        const newQuantity = Math.max(2, Math.floor(2 + easedProgress * 6));
 
-        // Increase vertical speed significantly at altitude
-        this.emitter.speedY = {
-            min: 60 + easedProgress * 140,
-            max: 180 + easedProgress * 220
-        };
+        // Speed: faster at altitude
+        const speedYMin = 60 + easedProgress * 100;
+        const speedYMax = 150 + easedProgress * 200;
+        const speedXMin = -40 - altitudeWind + extraWind;
+        const speedXMax = 40 + altitudeWind + extraWind;
 
-        // Reduce lifespan at altitude for more frantic feel
-        this.emitter.lifespan = 3500 - easedProgress * 1500;
+        // Scale: larger at altitude
+        const scaleMin = 0.3 + easedProgress * 0.3;
+        const scaleMax = 1.0 + easedProgress * 0.6;
+
+        // Lifespan: shorter at altitude
+        const newLifespan = 3500 - easedProgress * 1000;
+
+        // Apply updates using Phaser's proper API
+        this.emitter.frequency = newFrequency;
+        this.emitter.quantity.propertyValue = newQuantity;
+
+        // For ops (ranges), we update the internal properties
+        if (this.emitter.speedY) {
+            this.emitter.speedY.propertyValue = { min: speedYMin, max: speedYMax };
+        }
+        if (this.emitter.speedX) {
+            this.emitter.speedX.propertyValue = { min: speedXMin, max: speedXMax };
+        }
+        if (this.emitter.lifespan) {
+            this.emitter.lifespan.propertyValue = newLifespan;
+        }
     }
 }
