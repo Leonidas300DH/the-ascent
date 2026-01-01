@@ -97,6 +97,11 @@ class GameScene extends Phaser.Scene {
         this.coldSystem.update(delta);
         this.hud.update(playerAltitude);
 
+        // Update touch controls (must poll every frame)
+        if (this.touchControls && this.touchControls.isTouch) {
+            this.touchControls.update();
+        }
+
         // Check fail condition - player falls below camera view
         if (this.player.sprite.y > this.cameras.main.scrollY + GAME_HEIGHT + 50) {
             this.triggerGameOver('fall');

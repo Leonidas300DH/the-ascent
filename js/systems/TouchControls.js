@@ -7,7 +7,6 @@ class TouchControls {
             right: false,
             jump: false
         };
-        this.buttons = {};
     }
 
     create() {
@@ -16,104 +15,144 @@ class TouchControls {
 
         if (!this.isTouch) return;
 
-        // Create touch control buttons
-        this.createButtons();
+        // Enable input on the scene
+        this.scene.input.addPointer(2); // Support up to 3 pointers
+
+        // Create visual touch zones
+        this.createTouchZones();
     }
 
     detectTouchDevice() {
-        // Check for touch capability
         const hasTouch = ('ontouchstart' in window) ||
             (navigator.maxTouchPoints > 0) ||
             (navigator.msMaxTouchPoints > 0);
-
-        // Also check for mobile/tablet user agent
         const isMobile = /iPad|iPhone|iPod|Android|webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-
         return hasTouch || isMobile;
     }
 
-    createButtons() {
-        const padding = 40;
-        const buttonSize = 80;
+    createTouchZones() {
+        const padding = 30;
+        const buttonRadius = 45;
+        const y = GAME_HEIGHT - padding - buttonRadius;
 
-        // Container for all buttons (fixed to camera)
-        this.container = this.scene.add.container(0, 0);
-        this.container.setScrollFactor(0);
-        this.container.setDepth(1000);
+        // Create graphics for button visuals (fixed to camera)
+        this.graphics = this.scene.add.graphics();
+        this.graphics.setScrollFactor(0);
+        this.graphics.setDepth(1000);
 
-        // Left button
-        this.createButton(
-            padding + buttonSize / 2,
-            GAME_HEIGHT - padding - buttonSize / 2,
-            buttonSize,
-            '◀',
-            'left'
-        );
+        // Draw left button
+        this.leftX = padding + buttonRadius;
+        this.leftY = y;
+        this.drawButton(this.leftX, this.leftY, buttonRadius, '◀');
 
-        // Right button
-        this.createButton(
-            padding + buttonSize * 1.7,
-            GAME_HEIGHT - padding - buttonSize / 2,
-            buttonSize,
-            '▶',
-            'right'
-        );
+        // Draw right button
+        this.rightX = padding + buttonRadius * 2.5;
+        this.rightY = y;
+        this.drawButton(this.rightX, this.rightY, buttonRadius, '▶');
 
-        // Jump button (right side, larger)
-        this.createButton(
-            GAME_WIDTH - padding - buttonSize * 0.7,
-            GAME_HEIGHT - padding - buttonSize / 2,
-            buttonSize * 1.2,
-            '▲',
-            'jump'
-        );
+        // Draw jump button (larger, right side)
+        this.jumpRadius = buttonRadius * 1.3;
+        this.jumpX = GAME_WIDTH - padding - this.jumpRadius;
+        this.jumpY = y;
+        this.drawButton(this.jumpX, this.jumpY, this.jumpRadius, '▲');
+
+        // Use scene-level pointer events
+        this.scene.input.on('pointerdown', this.handlePointerDown, this);
+        this.scene.input.on('pointerup', this.handlePointerUp, this);
+        this.scene.input.on('pointermove', this.handlePointerMove, this);
     }
 
-    createButton(x, y, size, label, controlKey) {
-        // Button background
-        const bg = this.scene.add.circle(x, y, size / 2, 0xFFFFFF, 0.25);
-        bg.setStrokeStyle(4, 0xFFFFFF, 0.5);
+    drawButton(x, y, radius, label) {
+        // Draw circle
+        this.graphics.lineStyle(3, 0xFFFFFF, 0.5);
+        this.graphics.fillStyle(0xFFFFFF, 0.2);
+        this.graphics.fillCircle(x, y, radius);
+        this.graphics.strokeCircle(x, y, radius);
 
-        // Enable input with useHandCursor for better touch response
-        bg.setInteractive({ useHandCursor: false, draggable: false });
-
-        // Button label
+        // Add text label
         const text = this.scene.add.text(x, y, label, {
-            fontFamily: 'monospace',
-            fontSize: `${size * 0.45}px`,
+            fontFamily: 'Arial',
+            fontSize: `${radius * 0.8}px`,
             color: '#FFFFFF'
         });
         text.setOrigin(0.5);
         text.setAlpha(0.7);
+        text.setScrollFactor(0);
+        text.setDepth(1001);
+    }
 
-        // Use scene-level input events for more reliable touch
-        const self = this;
+    handlePointerDown(pointer) {
+        this.checkPointer(pointer, true);
+    }
 
-        bg.on('pointerdown', function (pointer) {
-            this.setFillStyle(0xFFFFFF, 0.5);
-            self.controls[controlKey] = true;
-        });
+    handlePointerUp(pointer) {
+        // Reset controls for this pointer
+        this.checkPointer(pointer, false);
+    }
 
-        bg.on('pointerup', function (pointer) {
-            this.setFillStyle(0xFFFFFF, 0.25);
-            self.controls[controlKey] = false;
-        });
+    handlePointerMove(pointer) {
+        if (pointer.isDown) {
+            this.checkPointer(pointer, true);
+        }
+    }
 
-        bg.on('pointerout', function (pointer) {
-            this.setFillStyle(0xFFFFFF, 0.25);
-            self.controls[controlKey] = false;
-        });
+    checkPointer(pointer, isDown) {
+        // Get pointer position relative to game (not screen)
+        const x = pointer.x;
+        const y = pointer.y;
 
-        // Also handle pointer cancel (important for mobile)
-        bg.on('pointerupoutside', function (pointer) {
-            this.setFillStyle(0xFFFFFF, 0.25);
-            self.controls[controlKey] = false;
-        });
+        const leftDist = Phaser.Math.Distance.Between(x, y, this.leftX, this.leftY);
+        const rightDist = Phaser.Math.Distance.Between(x, y, this.rightX, this.rightY);
+        const jumpDist = Phaser.Math.Distance.Between(x, y, this.jumpX, this.jumpY);
 
-        this.container.add(bg);
-        this.container.add(text);
+        // Check left button
+        if (leftDist < 50) {
+            this.controls.left = isDown;
+            if (isDown) this.controls.right = false;
+        }
+        // Check right button
+        else if (rightDist < 50) {
+            this.controls.right = isDown;
+            if (isDown) this.controls.left = false;
+        }
+        // Check jump button
+        else if (jumpDist < 60) {
+            this.controls.jump = isDown;
+        }
+        // Touch outside buttons - reset directional controls
+        else if (!isDown) {
+            // Only reset if this pointer was controlling these
+        }
+    }
 
-        this.buttons[controlKey] = { bg, text };
+    update() {
+        // Check all active pointers each frame
+        const pointers = this.scene.input.manager.pointers;
+
+        // Reset controls
+        let leftActive = false;
+        let rightActive = false;
+        let jumpActive = false;
+
+        for (let i = 0; i < pointers.length; i++) {
+            const pointer = pointers[i];
+            if (pointer && pointer.isDown) {
+                const x = pointer.x;
+                const y = pointer.y;
+
+                const leftDist = Phaser.Math.Distance.Between(x, y, this.leftX, this.leftY);
+                const rightDist = Phaser.Math.Distance.Between(x, y, this.rightX, this.rightY);
+                const jumpDist = Phaser.Math.Distance.Between(x, y, this.jumpX, this.jumpY);
+
+                if (leftDist < 55) leftActive = true;
+                if (rightDist < 55) rightActive = true;
+                if (jumpDist < 70) jumpActive = true;
+            }
+        }
+
+        this.controls.left = leftActive;
+        this.controls.right = rightActive;
+        this.controls.jump = jumpActive;
     }
 
     getControls() {
