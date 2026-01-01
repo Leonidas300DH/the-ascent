@@ -56,7 +56,7 @@ class VictoryScene extends Phaser.Scene {
         });
 
         // Congratulations
-        const congrats = this.add.text(width / 2, height / 2 - 50, 'Félicitations!', {
+        const congrats = this.add.text(width / 2, height / 2 - 50, 'Congratulations!', {
             fontFamily: 'monospace',
             fontSize: '28px',
             color: '#FFFFFF',
@@ -95,7 +95,7 @@ class VictoryScene extends Phaser.Scene {
         statsBox.fillRoundedRect(width / 2 - 150, height / 2 + 80, 300, 60, 8);
 
         const statsText = this.add.text(width / 2, height / 2 + 110,
-            'Tu as conquis la montagne!\nLa vue est magnifique.', {
+            'You conquered the mountain!\nThe view is breathtaking.', {
             fontFamily: 'monospace',
             fontSize: '14px',
             color: '#AAAAAA',
@@ -104,7 +104,7 @@ class VictoryScene extends Phaser.Scene {
         statsText.setOrigin(0.5);
 
         // Play again prompt
-        const playAgain = this.add.text(width / 2, height * 0.85, '[ Appuie sur ESPACE pour rejouer ]', {
+        const playAgain = this.add.text(width / 2, height * 0.85, '[ Press SPACE to play again ]', {
             fontFamily: 'monospace',
             fontSize: '18px',
             color: '#FFFFFF'

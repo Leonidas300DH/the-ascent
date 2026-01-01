@@ -6,6 +6,9 @@ class ParallaxBackground {
         this.stars = [];
         this.lastCameraY = 0;
         this.cloudDriftOffset = 0;
+        // Start with random slow drift direction (-1 or 1)
+        this.baseCloudDirection = Math.random() > 0.5 ? 1 : -1;
+        this.baseCloudSpeed = 0.15; // Slow base drift
     }
 
     create() {
@@ -132,15 +135,16 @@ class ParallaxBackground {
 
         const deltaY = cameraY - this.lastCameraY;
 
-        // Cloud drift based on wind direction
-        let windDirection = 0;
-        if (this.scene.windSystem) {
+        // Cloud drift: base slow drift + wind gusts
+        let windDirection = this.baseCloudDirection;
+        if (this.scene.windSystem && this.scene.windSystem.getDirection() !== 0) {
+            // During wind, use wind direction (faster)
             windDirection = this.scene.windSystem.getDirection();
+            this.cloudDriftOffset += windDirection * 0.5;
+        } else {
+            // Slow ambient drift
+            this.cloudDriftOffset += windDirection * this.baseCloudSpeed;
         }
-
-        // Slowly drift clouds in wind direction
-        const driftSpeed = 0.5;
-        this.cloudDriftOffset += windDirection * driftSpeed;
 
         this.layers.forEach((layer, index) => {
             const scrollAmount = deltaY * (1 - VISUALS.PARALLAX_SPEEDS[index]);

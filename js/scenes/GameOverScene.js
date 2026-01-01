@@ -28,9 +28,9 @@ class GameOverScene extends Phaser.Scene {
 
         // Death cause
         const causeMessages = {
-            'fall': '💀 Tu es tombé dans le vide',
-            'frozen': '🥶 Tu as gelé sur place',
-            'avalanche': '❄️ Enseveli par l\'avalanche'
+            'fall': '💀 You fell into the void',
+            'frozen': '🥶 You froze to death',
+            'avalanche': '❄️ Buried by the avalanche'
         };
         const causeText = this.add.text(width / 2, height / 3 + 20, causeMessages[this.deathReason] || causeMessages['fall'], {
             fontFamily: 'monospace',
@@ -67,7 +67,7 @@ class GameOverScene extends Phaser.Scene {
 
         // Progress toward summit
         const progress = Math.floor((this.finalAltitude / LEVEL.SUMMIT_ALTITUDE) * 100);
-        const progressText = this.add.text(width / 2, height / 2 + 60, `(${progress}% du sommet)`, {
+        const progressText = this.add.text(width / 2, height / 2 + 60, `(${progress}% of summit)`, {
             fontFamily: 'monospace',
             fontSize: '16px',
             color: '#888888'
@@ -75,7 +75,7 @@ class GameOverScene extends Phaser.Scene {
         progressText.setOrigin(0.5);
 
         // Restart prompt
-        const restartText = this.add.text(width / 2, height * 0.8, '[ Appuie sur ESPACE pour réessayer ]', {
+        const restartText = this.add.text(width / 2, height * 0.8, '[ Press SPACE to try again ]', {
             fontFamily: 'monospace',
             fontSize: '18px',
             color: '#FFFFFF'
