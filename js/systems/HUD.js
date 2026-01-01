@@ -59,7 +59,7 @@ class HUD {
         this.container.add(this.altitudeText);
 
         // Summit label
-        const summitLabel = this.scene.add.text(gaugeX + gaugeWidth + 10, gaugeY - 5, 'SUMMIT', {
+        const summitLabel = this.scene.add.text(gaugeX + gaugeWidth + 10, gaugeY - 5, t('summit'), {
             fontFamily: 'monospace',
             fontSize: '10px',
             color: '#FFD700',

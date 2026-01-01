@@ -37,7 +37,7 @@ class VictoryScene extends Phaser.Scene {
         }
 
         // Summit reached title
-        const title = this.add.text(width / 2, height / 4, '⛰️ SOMMET ATTEINT! ⛰️', {
+        const title = this.add.text(width / 2, height / 4, t('summitReached'), {
             fontFamily: 'monospace',
             fontSize: '36px',
             color: '#FFD700',
@@ -56,7 +56,7 @@ class VictoryScene extends Phaser.Scene {
         });
 
         // Congratulations
-        const congrats = this.add.text(width / 2, height / 2 - 50, 'Congratulations!', {
+        const congrats = this.add.text(width / 2, height / 2 - 50, t('congratulations'), {
             fontFamily: 'monospace',
             fontSize: '28px',
             color: '#FFFFFF',
@@ -70,7 +70,7 @@ class VictoryScene extends Phaser.Scene {
         const seconds = Math.floor((this.elapsedTime % 60000) / 1000);
         const timeStr = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
 
-        const timeText = this.add.text(width / 2, height / 2, `⏱️ Temps: ${timeStr}`, {
+        const timeText = this.add.text(width / 2, height / 2, `⏱️ ${t('time')}: ${timeStr}`, {
             fontFamily: 'monospace',
             fontSize: '24px',
             color: '#FFFFFF',
@@ -80,7 +80,7 @@ class VictoryScene extends Phaser.Scene {
         timeText.setOrigin(0.5);
 
         // Final altitude
-        const altText = this.add.text(width / 2, height / 2 + 40, `⛰️ Altitude: ${this.finalAltitude}m`, {
+        const altText = this.add.text(width / 2, height / 2 + 40, `⛰️ ${t('altitude')}: ${this.finalAltitude}m`, {
             fontFamily: 'monospace',
             fontSize: '20px',
             color: '#87CEEB',
@@ -94,8 +94,7 @@ class VictoryScene extends Phaser.Scene {
         statsBox.fillStyle(0x000000, 0.5);
         statsBox.fillRoundedRect(width / 2 - 150, height / 2 + 80, 300, 60, 8);
 
-        const statsText = this.add.text(width / 2, height / 2 + 110,
-            'You conquered the mountain!\nThe view is breathtaking.', {
+        const statsText = this.add.text(width / 2, height / 2 + 110, t('conqueredMountain'), {
             fontFamily: 'monospace',
             fontSize: '14px',
             color: '#AAAAAA',
@@ -104,7 +103,7 @@ class VictoryScene extends Phaser.Scene {
         statsText.setOrigin(0.5);
 
         // Play again prompt
-        const playAgain = this.add.text(width / 2, height * 0.85, '[ Press SPACE to play again ]', {
+        const playAgain = this.add.text(width / 2, height * 0.85, t('pressSpacePlayAgain'), {
             fontFamily: 'monospace',
             fontSize: '18px',
             color: '#FFFFFF'
