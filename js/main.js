@@ -6,6 +6,24 @@ const config = {
     parent: 'game-container',
     pixelArt: true,
     antialias: false,
+    scale: {
+        mode: Phaser.Scale.FIT,
+        autoCenter: Phaser.Scale.CENTER_BOTH,
+        min: {
+            width: 400,
+            height: 300
+        },
+        max: {
+            width: 1600,
+            height: 1200
+        }
+    },
+    input: {
+        activePointers: 3, // Support multiple touch points
+        touch: {
+            capture: true
+        }
+    },
     physics: {
         default: 'arcade',
         arcade: {
@@ -21,8 +39,3 @@ const config = {
 
 // Create game instance
 const game = new Phaser.Game(config);
-
-// Handle window resize
-window.addEventListener('resize', () => {
-    game.scale.resize(window.innerWidth, window.innerHeight);
-});

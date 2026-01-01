@@ -33,9 +33,8 @@ class TouchControls {
     }
 
     createButtons() {
-        const padding = 30;
-        const buttonSize = 70;
-        const alpha = 0.4;
+        const padding = 40;
+        const buttonSize = 80;
 
         // Container for all buttons (fixed to camera)
         this.container = this.scene.add.container(0, 0);
@@ -43,74 +42,78 @@ class TouchControls {
         this.container.setDepth(1000);
 
         // Left button
-        const leftBtn = this.createButton(
+        this.createButton(
             padding + buttonSize / 2,
             GAME_HEIGHT - padding - buttonSize / 2,
             buttonSize,
             '◀',
-            () => { this.controls.left = true; },
-            () => { this.controls.left = false; }
+            'left'
         );
-        this.buttons.left = leftBtn;
 
         // Right button
-        const rightBtn = this.createButton(
-            padding + buttonSize * 1.5 + 20,
+        this.createButton(
+            padding + buttonSize * 1.7,
             GAME_HEIGHT - padding - buttonSize / 2,
             buttonSize,
             '▶',
-            () => { this.controls.right = true; },
-            () => { this.controls.right = false; }
+            'right'
         );
-        this.buttons.right = rightBtn;
 
         // Jump button (right side, larger)
-        const jumpBtn = this.createButton(
-            GAME_WIDTH - padding - buttonSize / 2 - 20,
+        this.createButton(
+            GAME_WIDTH - padding - buttonSize * 0.7,
             GAME_HEIGHT - padding - buttonSize / 2,
-            buttonSize * 1.3,
+            buttonSize * 1.2,
             '▲',
-            () => { this.controls.jump = true; },
-            () => { this.controls.jump = false; }
+            'jump'
         );
-        this.buttons.jump = jumpBtn;
     }
 
-    createButton(x, y, size, label, onDown, onUp) {
+    createButton(x, y, size, label, controlKey) {
         // Button background
-        const bg = this.scene.add.circle(x, y, size / 2, 0xFFFFFF, 0.3);
-        bg.setStrokeStyle(3, 0xFFFFFF, 0.6);
-        bg.setInteractive();
+        const bg = this.scene.add.circle(x, y, size / 2, 0xFFFFFF, 0.25);
+        bg.setStrokeStyle(4, 0xFFFFFF, 0.5);
+
+        // Enable input with useHandCursor for better touch response
+        bg.setInteractive({ useHandCursor: false, draggable: false });
 
         // Button label
         const text = this.scene.add.text(x, y, label, {
             fontFamily: 'monospace',
-            fontSize: `${size * 0.5}px`,
+            fontSize: `${size * 0.45}px`,
             color: '#FFFFFF'
         });
         text.setOrigin(0.5);
-        text.setAlpha(0.8);
+        text.setAlpha(0.7);
 
-        // Touch events
-        bg.on('pointerdown', () => {
-            bg.setFillStyle(0xFFFFFF, 0.5);
-            onDown();
+        // Use scene-level input events for more reliable touch
+        const self = this;
+
+        bg.on('pointerdown', function (pointer) {
+            this.setFillStyle(0xFFFFFF, 0.5);
+            self.controls[controlKey] = true;
         });
 
-        bg.on('pointerup', () => {
-            bg.setFillStyle(0xFFFFFF, 0.3);
-            onUp();
+        bg.on('pointerup', function (pointer) {
+            this.setFillStyle(0xFFFFFF, 0.25);
+            self.controls[controlKey] = false;
         });
 
-        bg.on('pointerout', () => {
-            bg.setFillStyle(0xFFFFFF, 0.3);
-            onUp();
+        bg.on('pointerout', function (pointer) {
+            this.setFillStyle(0xFFFFFF, 0.25);
+            self.controls[controlKey] = false;
+        });
+
+        // Also handle pointer cancel (important for mobile)
+        bg.on('pointerupoutside', function (pointer) {
+            this.setFillStyle(0xFFFFFF, 0.25);
+            self.controls[controlKey] = false;
         });
 
         this.container.add(bg);
         this.container.add(text);
 
-        return { bg, text };
+        this.buttons[controlKey] = { bg, text };
     }
 
     getControls() {
