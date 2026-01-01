@@ -45,6 +45,10 @@ class GameScene extends Phaser.Scene {
         this.hud = new HUD(this);
         this.hud.create();
 
+        // Create touch controls (for iPad/mobile)
+        this.touchControls = new TouchControls(this);
+        this.touchControls.create();
+
         // Setup camera
         this.setupCamera();
 

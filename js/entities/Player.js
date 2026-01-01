@@ -47,12 +47,14 @@ class Player {
             this.wallDirection = 1;
         }
 
-        // Horizontal movement
+        // Horizontal movement (keyboard + touch)
         let moveX = 0;
-        if (this.cursors.left.isDown) {
+        const touch = this.scene.touchControls ? this.scene.touchControls.getControls() : null;
+
+        if (this.cursors.left.isDown || (touch && touch.left)) {
             moveX = -PHYSICS.PLAYER_SPEED;
             this.facingRight = false;
-        } else if (this.cursors.right.isDown) {
+        } else if (this.cursors.right.isDown || (touch && touch.right)) {
             moveX = PHYSICS.PLAYER_SPEED;
             this.facingRight = true;
         }
@@ -93,8 +95,17 @@ class Player {
         }
 
         // Jumping
-        const jumpPressed = Phaser.Input.Keyboard.JustDown(this.jumpKey) ||
+        const keyboardJump = Phaser.Input.Keyboard.JustDown(this.jumpKey) ||
             Phaser.Input.Keyboard.JustDown(this.cursors.up);
+
+        // Touch jump - detect new press (compare with previous frame)
+        let touchJump = false;
+        if (touch && touch.jump && !this.lastTouchJump) {
+            touchJump = true;
+        }
+        this.lastTouchJump = touch ? touch.jump : false;
+
+        const jumpPressed = keyboardJump || touchJump;
 
         if (jumpPressed) {
             if (onGround) {
