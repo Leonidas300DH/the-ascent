@@ -12,6 +12,9 @@ class VictoryScene extends Phaser.Scene {
         const width = this.cameras.main.width;
         const height = this.cameras.main.height;
 
+        // Play victory sound
+        this.sound.play('victory', { volume: 0.6 });
+
         // Gradient night sky background
         const bg = this.add.graphics();
         bg.fillGradientStyle(0x0a0a2a, 0x0a0a2a, 0x1a1a4a, 0x1a1a4a);

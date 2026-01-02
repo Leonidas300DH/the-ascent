@@ -4,6 +4,9 @@ class GameScene extends Phaser.Scene {
     }
 
     create() {
+        // Stop all sounds from previous scene (game over / victory)
+        this.sound.stopAll();
+
         // Initialize game state
         this.isGameOver = false;
         this.hasWon = false;
@@ -54,6 +57,9 @@ class GameScene extends Phaser.Scene {
 
         // Track lowest camera position (highest climb)
         this.lowestCameraY = this.cameras.main.scrollY;
+
+        // Start background music and ambient wind
+        this.startAudio();
     }
 
     setupCamera() {
@@ -124,6 +130,7 @@ class GameScene extends Phaser.Scene {
 
         // Transition to game over scene
         this.time.delayedCall(600, () => {
+            this.stopAllAudio();
             this.scene.start('GameOverScene', {
                 altitude: Math.floor(this.maxAltitudeReached),
                 time: elapsedTime,
@@ -148,10 +155,36 @@ class GameScene extends Phaser.Scene {
 
         // Transition to victory scene
         this.time.delayedCall(1500, () => {
+            this.stopAllAudio();
             this.scene.start('VictoryScene', {
                 altitude: LEVEL.SUMMIT_ALTITUDE,
                 time: elapsedTime
             });
         });
+    }
+
+    startAudio() {
+        // Background music (loop)
+        if (!this.music) {
+            this.music = this.sound.add('music', { loop: true, volume: 0.3 });
+            this.music.play();
+        }
+
+        // Ambient wind sound (loop)
+        if (!this.windSound) {
+            this.windSound = this.sound.add('wind', { loop: true, volume: 0.2 });
+            this.windSound.play();
+        }
+    }
+
+    stopAllAudio() {
+        if (this.music) {
+            this.music.stop();
+            this.music = null;
+        }
+        if (this.windSound) {
+            this.windSound.stop();
+            this.windSound = null;
+        }
     }
 }

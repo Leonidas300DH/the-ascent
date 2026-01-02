@@ -13,6 +13,13 @@ class GameOverScene extends Phaser.Scene {
         const width = this.cameras.main.width;
         const height = this.cameras.main.height;
 
+        // Play appropriate sound based on death reason
+        if (this.deathReason === 'fall') {
+            this.sound.play('falling', { volume: 0.5 });
+        } else {
+            this.sound.play('game_over', { volume: 0.5 });
+        }
+
         // Dark background
         this.add.rectangle(width / 2, height / 2, width, height, 0x0a0a1a, 0.9);
 

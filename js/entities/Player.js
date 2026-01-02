@@ -111,7 +111,7 @@ class Player {
             if (onGround) {
                 // Normal jump
                 body.velocity.y = PHYSICS.JUMP_VELOCITY;
-                this.scene.sound.play('jump', { volume: 0.3 });
+                this.playJumpSound();
             } else if (this.isOnWall && this.canWallJump && time - this.lastWallJumpTime > 200) {
                 // Wall jump
                 body.velocity.y = PHYSICS.WALL_JUMP_Y;
@@ -119,7 +119,7 @@ class Player {
                 this.canWallJump = false;
                 this.lastWallJumpTime = time;
                 this.facingRight = this.wallDirection < 0;
-                this.scene.sound.play('jump', { volume: 0.3 });
+                this.playJumpSound();
             }
         }
 
@@ -154,5 +154,12 @@ class Player {
 
     setOnIce(isOnIce) {
         this.isOnIce = isOnIce;
+    }
+
+    playJumpSound() {
+        // Play random jump sound for variety
+        const jumpSounds = ['jump1', 'jump2'];
+        const randomSound = jumpSounds[Math.floor(Math.random() * jumpSounds.length)];
+        this.scene.sound.play(randomSound, { volume: 0.4 });
     }
 }

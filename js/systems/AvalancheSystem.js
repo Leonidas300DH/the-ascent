@@ -84,6 +84,9 @@ class AvalancheSystem {
         this.activeTimer = this.scene.time.now + ENVIRONMENT.AVALANCHE.ACTIVE_DURATION;
         this.safetyCheckStartTime = this.scene.time.now + this.safetyCheckDelay;
 
+        // Play avalanche sound
+        this.scene.sound.play('avalanche', { volume: 0.7 });
+
         // Visuals - INTENSE snowstorm
         this.powderEmitter.setQuantity(0);
         this.snowstormEmitter.setQuantity(40); // Heavy snow particles
@@ -136,7 +139,7 @@ class AvalancheSystem {
         const platforms = this.scene.levelGenerator.platforms;
 
         for (const platform of platforms) {
-            if (!platform.isActive()) continue;
+            if (!platform.isActive) continue;
 
             const pSprite = platform.sprite;
             if (pSprite.y < playerTop) {

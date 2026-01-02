@@ -361,9 +361,19 @@ class BootScene extends Phaser.Scene {
     }
 
     createSounds() {
-        const audioContext = this.sound.context;
-        this.cache.audio.add('jump', audioContext.createBuffer(1, 2000, audioContext.sampleRate));
-        this.cache.audio.add('crumble', audioContext.createBuffer(1, 4000, audioContext.sampleRate));
+        // Load actual audio files from assets/audio/
+        this.load.audio('jump1', 'assets/audio/jump1.mp3');
+        this.load.audio('jump2', 'assets/audio/jump2.mp3');
+        this.load.audio('wind', 'assets/audio/wind.mp3');
+        this.load.audio('avalanche', 'assets/audio/avalanche.mp3');
+        this.load.audio('crumble', 'assets/audio/crumble.mp3');
+        this.load.audio('falling', 'assets/audio/falling.mp3');
+        this.load.audio('game_over', 'assets/audio/game_over.mp3');
+        this.load.audio('victory', 'assets/audio/victory.mp3');
+        this.load.audio('music', 'assets/audio/background_music.mp3');
+
+        // Start loading
+        this.load.start();
     }
 
     create() {
