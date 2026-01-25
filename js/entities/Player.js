@@ -2,18 +2,22 @@ class Player {
     constructor(scene, x, y) {
         this.scene = scene;
 
-        // Create sprite using idle spritesheet as base texture
-        this.sprite = scene.physics.add.sprite(x, y, 'player_idle');
+        // Try to use spritesheet, fall back to procedural texture
+        const textureKey = scene.textures.exists('player_idle') ? 'player_idle' : 'player';
+        this.sprite = scene.physics.add.sprite(x, y, textureKey);
         this.sprite.setCollideWorldBounds(false);
 
-        // Scale from 80x80 to ~48x48 display size (0.6 scale)
-        this.sprite.setScale(0.6);
-
-        // Adjust physics body for scaled sprite
-        // Body dimensions must account for scale (Phaser doesn't auto-scale physics bodies)
-        // Character in 80x80 frame: ~30x55 pixels, scaled by 0.6 = 18x33
-        this.sprite.body.setSize(18, 33);
-        this.sprite.body.setOffset(31, 25); // Centered on character
+        if (textureKey === 'player_idle') {
+            // Scale from 80x80 to ~48x48 display size (0.6 scale)
+            this.sprite.setScale(0.6);
+            // Body dimensions for spritesheet
+            this.sprite.body.setSize(18, 33);
+            this.sprite.body.setOffset(31, 25);
+        } else {
+            // Fallback: use procedural texture (24x32)
+            this.sprite.body.setSize(14, 28);
+            this.sprite.body.setOffset(5, 4);
+        }
         this.sprite.setDepth(100);
 
         // Physics
