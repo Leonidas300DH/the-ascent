@@ -177,8 +177,11 @@ class GameScene extends Phaser.Scene {
         // Celebration effect
         this.cameras.main.flash(500, 255, 215, 0);
 
-        // Freeze player
-        this.player.sprite.body.velocity.set(0, 0);
+        // Freeze player safely
+        if (this.player && this.player.sprite && this.player.sprite.body) {
+            this.player.sprite.body.velocity.x = 0;
+            this.player.sprite.body.velocity.y = 0;
+        }
         this.physics.pause();
 
         // Transition to victory scene
@@ -213,6 +216,16 @@ class GameScene extends Phaser.Scene {
         if (this.windSound) {
             this.windSound.stop();
             this.windSound = null;
+        }
+    }
+
+    shutdown() {
+        // Clean up when scene is shut down
+        this.stopAllAudio();
+
+        // Stop camera follow to prevent errors
+        if (this.cameras && this.cameras.main) {
+            this.cameras.main.stopFollow();
         }
     }
 }

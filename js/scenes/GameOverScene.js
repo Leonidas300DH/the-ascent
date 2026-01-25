@@ -108,7 +108,12 @@ class GameOverScene extends Phaser.Scene {
         });
 
         // RESTART GAME - multiple methods
+        let hasRestarted = false;
         const restartGame = () => {
+            if (hasRestarted) return;
+            hasRestarted = true;
+            // Stop this scene first, then start GameScene
+            this.scene.stop('GameOverScene');
             this.scene.start('GameScene');
         };
 
