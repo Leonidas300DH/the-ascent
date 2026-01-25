@@ -26,8 +26,8 @@ class GameScene extends Phaser.Scene {
         this.startingPlatform.setDepth(50);
 
         // Create player ON the starting platform
-        // Platform surface at Y = 500 - 12 = 488, player center at 488 - 16 = 472
-        this.player = new Player(this, GAME_WIDTH / 2, 472);
+        // Platform surface at Y = 500 - 12 = 488, player needs to be above it
+        this.player = new Player(this, GAME_WIDTH / 2, 460);
 
         // Add collision between player and starting platform
         this.physics.add.collider(this.player.sprite, this.startingPlatform);

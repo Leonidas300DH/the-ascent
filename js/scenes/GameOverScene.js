@@ -98,13 +98,19 @@ class GameOverScene extends Phaser.Scene {
             repeat: -1
         });
 
-        // Restart input
-        this.input.keyboard.once('keydown-SPACE', () => {
-            this.scene.start('GameScene');
-        });
+        // Restart input - delay slightly to prevent accidental immediate restart
+        this.time.delayedCall(500, () => {
+            this.input.keyboard.on('keydown-SPACE', () => {
+                this.scene.start('GameScene');
+            });
 
-        this.input.once('pointerdown', () => {
-            this.scene.start('GameScene');
+            this.input.keyboard.on('keydown-R', () => {
+                this.scene.start('GameScene');
+            });
+
+            this.input.on('pointerdown', () => {
+                this.scene.start('GameScene');
+            });
         });
     }
 }

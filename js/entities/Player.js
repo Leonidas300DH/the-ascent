@@ -10,9 +10,10 @@ class Player {
         this.sprite.setScale(0.6);
 
         // Adjust physics body for scaled sprite
-        // Character within 80x80 frame is roughly centered, ~30x55 pixels
-        this.sprite.body.setSize(28, 55);
-        this.sprite.body.setOffset(26, 20);
+        // Body dimensions must account for scale (Phaser doesn't auto-scale physics bodies)
+        // Character in 80x80 frame: ~30x55 pixels, scaled by 0.6 = 18x33
+        this.sprite.body.setSize(18, 33);
+        this.sprite.body.setOffset(31, 25); // Centered on character
         this.sprite.setDepth(100);
 
         // Physics
