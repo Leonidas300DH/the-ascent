@@ -14,14 +14,19 @@ class GameOverScene extends Phaser.Scene {
         const height = this.cameras.main.height;
 
         // Play appropriate sound based on death reason
-        if (this.deathReason === 'fall') {
-            this.sound.play('falling', { volume: 0.5 });
-        } else {
-            this.sound.play('game_over', { volume: 0.5 });
+        try {
+            if (this.deathReason === 'fall') {
+                this.sound.play('falling', { volume: 0.5 });
+            } else {
+                this.sound.play('game_over', { volume: 0.5 });
+            }
+        } catch (e) {
+            console.log('Sound error:', e);
         }
 
-        // Dark background
-        this.add.rectangle(width / 2, height / 2, width, height, 0x0a0a1a, 0.9);
+        // Dark background - make it interactive for clicking anywhere
+        const bg = this.add.rectangle(width / 2, height / 2, width, height, 0x0a0a1a, 0.95);
+        bg.setInteractive();
 
         // Game Over title
         const title = this.add.text(width / 2, height / 4, t('gameOver'), {
@@ -37,7 +42,8 @@ class GameOverScene extends Phaser.Scene {
         const causeMessages = {
             'fall': t('deathFall'),
             'frozen': t('deathFrozen'),
-            'avalanche': t('deathAvalanche')
+            'avalanche': t('deathAvalanche'),
+            'enemy': 'Hit by enemy!'
         };
         const causeText = this.add.text(width / 2, height / 3 + 20, causeMessages[this.deathReason] || causeMessages['fall'], {
             fontFamily: 'monospace',
@@ -53,7 +59,7 @@ class GameOverScene extends Phaser.Scene {
         const seconds = Math.floor((this.elapsedTime % 60000) / 1000);
         const timeStr = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
 
-        const timeText = this.add.text(width / 2, height / 2 - 20, `⏱️ ${t('time')}: ${timeStr}`, {
+        const timeText = this.add.text(width / 2, height / 2 - 20, `Time: ${timeStr}`, {
             fontFamily: 'monospace',
             fontSize: '22px',
             color: '#FFFFFF',
@@ -63,7 +69,7 @@ class GameOverScene extends Phaser.Scene {
         timeText.setOrigin(0.5);
 
         // Altitude reached
-        const altText = this.add.text(width / 2, height / 2 + 20, `⛰️ ${t('altitude')}: ${this.finalAltitude}m`, {
+        const altText = this.add.text(width / 2, height / 2 + 20, `Altitude: ${this.finalAltitude}m`, {
             fontFamily: 'monospace',
             fontSize: '22px',
             color: '#87CEEB',
@@ -74,70 +80,66 @@ class GameOverScene extends Phaser.Scene {
 
         // Progress toward summit
         const progress = Math.floor((this.finalAltitude / LEVEL.SUMMIT_ALTITUDE) * 100);
-        const progressText = this.add.text(width / 2, height / 2 + 60, `(${progress}% ${t('ofSummit')})`, {
+        const progressText = this.add.text(width / 2, height / 2 + 60, `(${progress}% of summit)`, {
             fontFamily: 'monospace',
             fontSize: '16px',
             color: '#888888'
         });
         progressText.setOrigin(0.5);
 
-        // Restart button (clickable)
-        const restartBtn = this.add.text(width / 2, height * 0.75, '[ RETRY ]', {
-            fontFamily: 'monospace',
-            fontSize: '24px',
-            color: '#FFD700',
-            stroke: '#000000',
-            strokeThickness: 4,
-            backgroundColor: '#333333',
-            padding: { x: 20, y: 10 }
-        });
-        restartBtn.setOrigin(0.5);
-        restartBtn.setInteractive({ useHandCursor: true });
-        restartBtn.on('pointerover', () => restartBtn.setColor('#FFFFFF'));
-        restartBtn.on('pointerout', () => restartBtn.setColor('#FFD700'));
-        restartBtn.on('pointerdown', () => this.restartGame());
+        // Big clickable RETRY button
+        const retryBtn = this.add.rectangle(width / 2, height * 0.75, 200, 60, 0x27ae60);
+        retryBtn.setInteractive({ useHandCursor: true });
 
-        // Restart prompt text
-        const restartText = this.add.text(width / 2, height * 0.88, t('pressSpaceRetry'), {
+        const retryText = this.add.text(width / 2, height * 0.75, 'RETRY', {
+            fontFamily: 'monospace',
+            fontSize: '28px',
+            color: '#FFFFFF',
+            fontStyle: 'bold'
+        });
+        retryText.setOrigin(0.5);
+
+        // Button hover effect
+        retryBtn.on('pointerover', () => {
+            retryBtn.setFillStyle(0x2ecc71);
+        });
+        retryBtn.on('pointerout', () => {
+            retryBtn.setFillStyle(0x27ae60);
+        });
+
+        // RESTART GAME - multiple methods
+        const restartGame = () => {
+            this.scene.start('GameScene');
+        };
+
+        // Method 1: Click the button
+        retryBtn.on('pointerdown', restartGame);
+        retryText.setInteractive();
+        retryText.on('pointerdown', restartGame);
+
+        // Method 2: Click anywhere after 1 second
+        this.time.delayedCall(1000, () => {
+            bg.on('pointerdown', restartGame);
+        });
+
+        // Method 3: Any key press
+        this.input.keyboard.on('keydown', restartGame);
+
+        // Tap/click anywhere hint
+        const hintText = this.add.text(width / 2, height * 0.9, 'Click anywhere or press any key', {
             fontFamily: 'monospace',
             fontSize: '14px',
-            color: '#888888'
+            color: '#666666'
         });
-        restartText.setOrigin(0.5);
+        hintText.setOrigin(0.5);
 
-        // Blink effect
+        // Blink hint
         this.tweens.add({
-            targets: restartText,
+            targets: hintText,
             alpha: 0.3,
             duration: 800,
             yoyo: true,
             repeat: -1
         });
-
-        // Setup keyboard - using cursors for reliability
-        this.cursors = this.input.keyboard.createCursorKeys();
-        this.spaceKey = this.input.keyboard.addKey('SPACE');
-        this.rKey = this.input.keyboard.addKey('R');
-
-        this.hasRestarted = false;
-    }
-
-    update() {
-        if (this.hasRestarted) return;
-
-        // Check multiple ways for key press
-        const spacePressed = this.spaceKey.isDown;
-        const rPressed = this.rKey.isDown;
-        const upPressed = this.cursors.up.isDown;
-
-        if (spacePressed || rPressed || upPressed) {
-            this.restartGame();
-        }
-    }
-
-    restartGame() {
-        if (this.hasRestarted) return;
-        this.hasRestarted = true;
-        this.scene.start('GameScene');
     }
 }
