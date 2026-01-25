@@ -146,38 +146,73 @@ class BootScene extends Phaser.Scene {
 
     createRockPlatformTexture(palette) {
         const w = 64;
-        const h = 24; // Thicker
+        const h = 24;
         const graphics = this.make.graphics({ x: 0, y: 0, add: false });
 
-        // Main Rock Body
-        graphics.fillStyle(palette.rock[1]);
-        graphics.fillRect(0, 0, w, h);
+        // Define colors for pixel art style
+        const darkRock = 0x3D3429;
+        const midRock = 0x5C5042;
+        const lightRock = 0x756B5D;
+        const snowWhite = 0xF0F8FF;
+        const snowShade = 0xD4E5ED;
+        const outline = 0x2A241D;
 
-        // Shading / Texture
-        graphics.fillStyle(palette.rock[0]); // Dark spots
-        for (let i = 0; i < 30; i++) {
-            const x = Phaser.Math.Between(0, w);
-            const y = Phaser.Math.Between(0, h);
-            graphics.fillRect(x, y, Phaser.Math.Between(2, 5), Phaser.Math.Between(2, 5));
-        }
+        // Draw pixel by pixel for crisp look
+        const setPixel = (x, y, color) => {
+            graphics.fillStyle(color);
+            graphics.fillRect(x, y, 1, 1);
+        };
 
-        // Snow Cap (thick)
-        graphics.fillStyle(palette.snow[0]); // White snow
-        graphics.fillRect(0, 0, w, 6);
-
-        // Snow drip
-        graphics.fillStyle(palette.snow[0]);
-        for (let x = 4; x < w; x += 12) {
-            graphics.fillRect(x, 6, 4, Phaser.Math.Between(2, 4));
-        }
-
-        // Bottom Shadow
-        graphics.fillStyle(0x000000, 0.3);
-        graphics.fillRect(0, h - 2, w, 2);
-
-        // Border/Outline effect (Top/Bottom only)
-        graphics.fillStyle(palette.rock[0]);
+        // Bottom outline
+        graphics.fillStyle(outline);
         graphics.fillRect(0, h - 1, w, 1);
+
+        // Main rock body with layered shading
+        for (let y = 8; y < h - 1; y++) {
+            for (let x = 0; x < w; x++) {
+                // Create rocky texture with noise
+                const noise = Math.sin(x * 0.5) * Math.cos(y * 0.3) + Math.random() * 0.3;
+                if (noise > 0.3) {
+                    setPixel(x, y, lightRock);
+                } else if (noise > -0.2) {
+                    setPixel(x, y, midRock);
+                } else {
+                    setPixel(x, y, darkRock);
+                }
+            }
+        }
+
+        // Left and right edges (darker)
+        graphics.fillStyle(darkRock);
+        graphics.fillRect(0, 8, 2, h - 9);
+        graphics.fillRect(w - 2, 8, 2, h - 9);
+
+        // Snow cap with irregular edge
+        for (let x = 0; x < w; x++) {
+            const snowHeight = 6 + Math.floor(Math.sin(x * 0.3) * 2);
+            for (let y = 0; y < snowHeight; y++) {
+                if (y < 2) {
+                    setPixel(x, y, snowWhite);
+                } else if (y < snowHeight - 1) {
+                    setPixel(x, y, (x + y) % 3 === 0 ? snowShade : snowWhite);
+                } else {
+                    setPixel(x, y, snowShade);
+                }
+            }
+        }
+
+        // Snow drips (icicle-like)
+        for (let x = 6; x < w - 6; x += 8) {
+            const dripLen = 2 + Math.floor(Math.random() * 3);
+            for (let dy = 0; dy < dripLen; dy++) {
+                setPixel(x, 7 + dy, dy === dripLen - 1 ? snowShade : snowWhite);
+                if (dy < dripLen - 1) setPixel(x + 1, 7 + dy, snowShade);
+            }
+        }
+
+        // Highlight on top edge
+        graphics.fillStyle(0xFFFFFF);
+        graphics.fillRect(2, 0, w - 4, 1);
 
         graphics.generateTexture('platform_rock', w, h);
         graphics.destroy();
@@ -188,29 +223,75 @@ class BootScene extends Phaser.Scene {
         const h = 24;
         const graphics = this.make.graphics({ x: 0, y: 0, add: false });
 
-        // Base Ice (Translucent look)
-        graphics.fillStyle(palette.ice[0], 0.8);
-        graphics.fillRect(0, 0, w, h);
+        // Ice colors
+        const iceDeep = 0x5BA3B0;
+        const iceMid = 0x8ED5E0;
+        const iceLight = 0xC5EEF5;
+        const iceWhite = 0xE8F9FC;
+        const iceShine = 0xFFFFFF;
+        const outline = 0x3D8A96;
 
-        // Shine / Highlight
-        graphics.fillStyle(palette.ice[2], 0.4);
-        graphics.fillRect(0, 0, w, 4); // Top shine
+        const setPixel = (x, y, color) => {
+            graphics.fillStyle(color);
+            graphics.fillRect(x, y, 1, 1);
+        };
 
-        // Diagonal streaks (reflections)
-        graphics.fillStyle(palette.ice[1], 0.6);
-        for (let i = 0; i < 3; i++) {
-            const startX = Phaser.Math.Between(5, w - 20);
-            graphics.beginPath();
-            graphics.moveTo(startX, 6);
-            graphics.lineTo(startX + 10, h - 4);
-            graphics.lineTo(startX + 15, h - 4);
-            graphics.lineTo(startX + 5, 6);
-            graphics.fillPath();
+        // Main ice body with crystalline texture
+        for (let y = 0; y < h; y++) {
+            for (let x = 0; x < w; x++) {
+                // Create crystalline pattern
+                const pattern = (x + y * 2) % 8;
+                const depth = y / h;
+
+                if (y < 3) {
+                    // Top shine
+                    setPixel(x, y, y === 0 ? iceShine : iceWhite);
+                } else if (y >= h - 2) {
+                    // Bottom edge
+                    setPixel(x, y, y === h - 1 ? outline : iceDeep);
+                } else {
+                    // Main body with crystal effect
+                    if (pattern < 2) {
+                        setPixel(x, y, iceLight);
+                    } else if (pattern < 5) {
+                        setPixel(x, y, iceMid);
+                    } else {
+                        setPixel(x, y, depth > 0.6 ? iceDeep : iceMid);
+                    }
+                }
+            }
         }
 
-        // Bottom darker edge
-        graphics.fillStyle(palette.ice[0], 1.0);
-        graphics.fillRect(0, h - 2, w, 2);
+        // Diagonal shine streaks
+        for (let i = 0; i < 3; i++) {
+            const startX = 8 + i * 18;
+            for (let d = 0; d < 12; d++) {
+                const x = startX + d;
+                const y = 4 + Math.floor(d * 1.2);
+                if (x < w - 2 && y < h - 3) {
+                    setPixel(x, y, iceWhite);
+                    setPixel(x + 1, y, iceLight);
+                }
+            }
+        }
+
+        // Icicle points at bottom
+        for (let x = 4; x < w - 4; x += 6) {
+            const icicleLen = 2 + (x % 3);
+            for (let dy = 0; dy < icicleLen; dy++) {
+                const y = h - 1 + dy;
+                if (y < h + 3) {
+                    // Draw icicle shape tapering down
+                    graphics.fillStyle(dy === 0 ? iceMid : (dy === icicleLen - 1 ? iceWhite : iceLight));
+                    graphics.fillRect(x, h - 2, 2 - (dy > 1 ? 1 : 0), 1);
+                }
+            }
+        }
+
+        // Left and right edges
+        graphics.fillStyle(outline);
+        graphics.fillRect(0, 0, 1, h);
+        graphics.fillRect(w - 1, 0, 1, h);
 
         graphics.generateTexture('platform_ice', w, h);
         graphics.destroy();
@@ -221,22 +302,86 @@ class BootScene extends Phaser.Scene {
         const h = 24;
         const graphics = this.make.graphics({ x: 0, y: 0, add: false });
 
-        // Base Dirt/Old Stone
-        graphics.fillStyle(palette.dirt[1]);
-        graphics.fillRect(0, 0, w, h);
+        // Crumbling rock colors - weathered brown/grey
+        const darkStone = 0x3E3224;
+        const midStone = 0x5D4E37;
+        const lightStone = 0x7A6B54;
+        const dusty = 0x8B7B64;
+        const crackDark = 0x1E1810;
+        const outline = 0x2D2419;
 
-        // Cracks
-        graphics.fillStyle(palette.dirt[2]); // Dark crack color
-        for (let i = 0; i < 5; i++) {
-            const x = Phaser.Math.Between(10, w - 10);
-            const y = Phaser.Math.Between(5, h - 5);
-            graphics.fillRect(x, y, 6, 2);
-            graphics.fillRect(x + 2, y - 2, 2, 6);
+        const setPixel = (x, y, color) => {
+            graphics.fillStyle(color);
+            graphics.fillRect(x, y, 1, 1);
+        };
+
+        // Main crumbling body with rough texture
+        for (let y = 0; y < h; y++) {
+            for (let x = 0; x < w; x++) {
+                const noise = Math.random();
+                if (y === 0 || y === h - 1) {
+                    setPixel(x, y, outline);
+                } else if (y < 3) {
+                    // Dusty top
+                    setPixel(x, y, noise > 0.3 ? dusty : lightStone);
+                } else {
+                    // Rough stone texture
+                    if (noise > 0.7) {
+                        setPixel(x, y, lightStone);
+                    } else if (noise > 0.3) {
+                        setPixel(x, y, midStone);
+                    } else {
+                        setPixel(x, y, darkStone);
+                    }
+                }
+            }
         }
 
-        // Moss/Grass spots? No, keep it dry/crumbling
-        graphics.fillStyle(palette.dirt[0]); // Light dust
-        graphics.fillRect(0, 0, w, 3); // Dusty top
+        // Draw cracks
+        const drawCrack = (startX, startY) => {
+            let x = startX;
+            let y = startY;
+            for (let i = 0; i < 8; i++) {
+                setPixel(x, y, crackDark);
+                setPixel(x + 1, y, darkStone);
+                // Random direction
+                x += Math.random() > 0.5 ? 1 : -1;
+                y += Math.random() > 0.3 ? 1 : 0;
+                if (y >= h - 1 || x < 1 || x >= w - 1) break;
+            }
+        };
+
+        // Add several cracks
+        drawCrack(12, 4);
+        drawCrack(28, 5);
+        drawCrack(45, 3);
+        drawCrack(52, 6);
+
+        // Missing chunks at edges (irregular outline)
+        const chunks = [
+            { x: 0, y: 3, w: 3, h: 4 },
+            { x: w - 4, y: 5, w: 4, h: 5 },
+            { x: 8, y: h - 4, w: 5, h: 4 },
+            { x: w - 12, y: h - 3, w: 4, h: 3 }
+        ];
+
+        chunks.forEach(chunk => {
+            graphics.fillStyle(0x000000, 0);
+            for (let cy = 0; cy < chunk.h; cy++) {
+                for (let cx = 0; cx < chunk.w; cx++) {
+                    // Create rough edge
+                    if (Math.random() > 0.4) {
+                        graphics.fillStyle(0x000000, 0);
+                        graphics.fillRect(chunk.x + cx, chunk.y + cy, 1, 1);
+                    }
+                }
+            }
+        });
+
+        // Add warning coloring (subtle red/orange tint on edges)
+        graphics.fillStyle(0x8B4513, 0.3);
+        graphics.fillRect(0, 0, 3, h);
+        graphics.fillRect(w - 3, 0, 3, h);
 
         graphics.generateTexture('platform_crumbling', w, h);
         graphics.destroy();
@@ -244,28 +389,69 @@ class BootScene extends Phaser.Scene {
 
     createWallTexture(palette) {
         const w = 64;
-        const h = 128; // Larger to tile better
+        const h = 128;
         const graphics = this.make.graphics({ x: 0, y: 0, add: false });
 
-        // Dark mountain rock base
-        graphics.fillStyle(0x2D3436);
-        graphics.fillRect(0, 0, w, h);
+        // Mountain wall colors
+        const darkRock = 0x2A2520;
+        const midRock = 0x3D3832;
+        const lightRock = 0x524B44;
+        const highlight = 0x6B635A;
+        const snowPatch = 0xE8F1F2;
+        const snowShade = 0xB3CDE0;
 
-        // Rock strata / layers
-        graphics.fillStyle(0x353B48);
-        for (let y = 10; y < h; y += 20) {
-            graphics.fillRect(0, y, w, 8);
+        const setPixel = (x, y, color) => {
+            graphics.fillStyle(color);
+            graphics.fillRect(x, y, 1, 1);
+        };
+
+        // Base rocky texture
+        for (let y = 0; y < h; y++) {
+            for (let x = 0; x < w; x++) {
+                // Create layered rock strata effect
+                const strataOffset = Math.sin(x * 0.1) * 3;
+                const strata = Math.floor((y + strataOffset) / 16) % 3;
+                const noise = Math.random();
+
+                let color;
+                if (strata === 0) {
+                    color = noise > 0.7 ? highlight : (noise > 0.3 ? midRock : darkRock);
+                } else if (strata === 1) {
+                    color = noise > 0.6 ? midRock : (noise > 0.2 ? darkRock : midRock);
+                } else {
+                    color = noise > 0.5 ? lightRock : midRock;
+                }
+
+                // Add vertical crack lines
+                if ((x === 15 || x === 35 || x === 52) && noise > 0.3) {
+                    color = darkRock;
+                }
+
+                setPixel(x, y, color);
+            }
         }
 
-        // Vertical cracks
-        graphics.fillStyle(0x1e272e);
-        for (let x = 10; x < w; x += 20) {
-            graphics.fillRect(x, 0, 4, h);
+        // Snow patches clinging to wall
+        for (let y = 0; y < h; y += 24) {
+            const patchHeight = 8 + Math.floor(Math.random() * 8);
+            const patchStart = y + Math.floor(Math.random() * 8);
+            for (let py = 0; py < patchHeight && patchStart + py < h; py++) {
+                const patchWidth = 3 + Math.floor(Math.sin(py * 0.5) * 2);
+                for (let px = 0; px < patchWidth; px++) {
+                    const snowX = w - 1 - px;
+                    if (snowX >= 0) {
+                        setPixel(snowX, patchStart + py, py < 2 ? snowPatch : snowShade);
+                    }
+                }
+            }
         }
 
-        // Snow clinging to sides
-        graphics.fillStyle(palette.snow[1], 0.5);
-        graphics.fillRect(w - 4, 0, 4, h); // Right edge snow
+        // Left edge highlight (light source from left)
+        for (let y = 0; y < h; y++) {
+            if (Math.random() > 0.3) {
+                setPixel(0, y, highlight);
+            }
+        }
 
         graphics.generateTexture('wall', w, h);
         graphics.destroy();
