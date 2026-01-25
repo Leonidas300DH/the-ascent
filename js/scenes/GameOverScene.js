@@ -107,14 +107,13 @@ class GameOverScene extends Phaser.Scene {
             retryBtn.setFillStyle(0x27ae60);
         });
 
-        // RESTART GAME - multiple methods
+        // RESTART GAME - reload page to ensure clean state
         let hasRestarted = false;
         const restartGame = () => {
             if (hasRestarted) return;
             hasRestarted = true;
-            // Stop this scene first, then start GameScene
-            this.scene.stop('GameOverScene');
-            this.scene.start('GameScene');
+            // Reload the page for a clean restart
+            window.location.reload();
         };
 
         // Method 1: Click the button
