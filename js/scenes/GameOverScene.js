@@ -98,19 +98,35 @@ class GameOverScene extends Phaser.Scene {
             repeat: -1
         });
 
-        // Restart input - delay slightly to prevent accidental immediate restart
+        // Setup restart keys
+        this.spaceKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
+        this.rKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.R);
+
+        // Delay before allowing restart
+        this.canRestart = false;
         this.time.delayedCall(500, () => {
-            this.input.keyboard.on('keydown-SPACE', () => {
-                this.scene.start('GameScene');
-            });
-
-            this.input.keyboard.on('keydown-R', () => {
-                this.scene.start('GameScene');
-            });
-
-            this.input.on('pointerdown', () => {
-                this.scene.start('GameScene');
-            });
+            this.canRestart = true;
         });
+
+        // Pointer/touch restart
+        this.input.on('pointerdown', () => {
+            if (this.canRestart) {
+                this.restartGame();
+            }
+        });
+    }
+
+    update() {
+        if (!this.canRestart) return;
+
+        if (Phaser.Input.Keyboard.JustDown(this.spaceKey) ||
+            Phaser.Input.Keyboard.JustDown(this.rKey)) {
+            this.restartGame();
+        }
+    }
+
+    restartGame() {
+        this.canRestart = false;
+        this.scene.start('GameScene');
     }
 }
