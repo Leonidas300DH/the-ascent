@@ -81,11 +81,27 @@ class GameOverScene extends Phaser.Scene {
         });
         progressText.setOrigin(0.5);
 
-        // Restart prompt
-        const restartText = this.add.text(width / 2, height * 0.8, t('pressSpaceRetry'), {
+        // Restart button (clickable)
+        const restartBtn = this.add.text(width / 2, height * 0.75, '[ RETRY ]', {
             fontFamily: 'monospace',
-            fontSize: '18px',
-            color: '#FFFFFF'
+            fontSize: '24px',
+            color: '#FFD700',
+            stroke: '#000000',
+            strokeThickness: 4,
+            backgroundColor: '#333333',
+            padding: { x: 20, y: 10 }
+        });
+        restartBtn.setOrigin(0.5);
+        restartBtn.setInteractive({ useHandCursor: true });
+        restartBtn.on('pointerover', () => restartBtn.setColor('#FFFFFF'));
+        restartBtn.on('pointerout', () => restartBtn.setColor('#FFD700'));
+        restartBtn.on('pointerdown', () => this.restartGame());
+
+        // Restart prompt text
+        const restartText = this.add.text(width / 2, height * 0.88, t('pressSpaceRetry'), {
+            fontFamily: 'monospace',
+            fontSize: '14px',
+            color: '#888888'
         });
         restartText.setOrigin(0.5);
 
@@ -98,35 +114,30 @@ class GameOverScene extends Phaser.Scene {
             repeat: -1
         });
 
-        // Setup restart keys
-        this.spaceKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
-        this.rKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.R);
+        // Setup keyboard - using cursors for reliability
+        this.cursors = this.input.keyboard.createCursorKeys();
+        this.spaceKey = this.input.keyboard.addKey('SPACE');
+        this.rKey = this.input.keyboard.addKey('R');
 
-        // Delay before allowing restart
-        this.canRestart = false;
-        this.time.delayedCall(500, () => {
-            this.canRestart = true;
-        });
-
-        // Pointer/touch restart
-        this.input.on('pointerdown', () => {
-            if (this.canRestart) {
-                this.restartGame();
-            }
-        });
+        this.hasRestarted = false;
     }
 
     update() {
-        if (!this.canRestart) return;
+        if (this.hasRestarted) return;
 
-        if (Phaser.Input.Keyboard.JustDown(this.spaceKey) ||
-            Phaser.Input.Keyboard.JustDown(this.rKey)) {
+        // Check multiple ways for key press
+        const spacePressed = this.spaceKey.isDown;
+        const rPressed = this.rKey.isDown;
+        const upPressed = this.cursors.up.isDown;
+
+        if (spacePressed || rPressed || upPressed) {
             this.restartGame();
         }
     }
 
     restartGame() {
-        this.canRestart = false;
+        if (this.hasRestarted) return;
+        this.hasRestarted = true;
         this.scene.start('GameScene');
     }
 }
