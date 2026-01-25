@@ -6,13 +6,13 @@ class Player {
         this.sprite = scene.physics.add.sprite(x, y, 'player_idle');
         this.sprite.setCollideWorldBounds(false);
 
-        // Scale from 80x80 to ~32x32 display size (0.4 scale)
-        this.sprite.setScale(0.4);
+        // Scale from 80x80 to ~48x48 display size (0.6 scale)
+        this.sprite.setScale(0.6);
 
         // Adjust physics body for scaled sprite
-        // Character within 80x80 frame is roughly centered, ~30x60 pixels
-        this.sprite.body.setSize(30, 60);
-        this.sprite.body.setOffset(25, 18);
+        // Character within 80x80 frame is roughly centered, ~30x55 pixels
+        this.sprite.body.setSize(28, 55);
+        this.sprite.body.setOffset(26, 20);
         this.sprite.setDepth(100);
 
         // Physics
