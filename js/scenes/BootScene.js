@@ -4,8 +4,36 @@ class BootScene extends Phaser.Scene {
     }
 
     preload() {
+        this.loadAssets();
         this.generateTextures();
         this.createLoadingBar();
+    }
+
+    loadAssets() {
+        // Background layers
+        this.load.image('bg_sky', 'assets/images/backgrounds/sky.png');
+        this.load.image('bg_far_mountains', 'assets/images/backgrounds/far-mountains.png');
+        this.load.image('bg_mountains', 'assets/images/backgrounds/mountains.png');
+        this.load.image('bg_far_clouds', 'assets/images/backgrounds/far-clouds.png');
+        this.load.image('bg_near_clouds', 'assets/images/backgrounds/near-clouds.png');
+        this.load.image('bg_trees', 'assets/images/backgrounds/trees.png');
+
+        // Player spritesheets (80x80 frames)
+        this.load.spritesheet('player_idle', 'assets/images/player/player-idle.png', { frameWidth: 80, frameHeight: 80 });
+        this.load.spritesheet('player_run', 'assets/images/player/player-run.png', { frameWidth: 80, frameHeight: 80 });
+        this.load.spritesheet('player_jump', 'assets/images/player/player-jump.png', { frameWidth: 80, frameHeight: 80 });
+        this.load.spritesheet('player_cling', 'assets/images/player/player-cling.png', { frameWidth: 80, frameHeight: 80 });
+        this.load.spritesheet('player_hurt', 'assets/images/player/player-hurt.png', { frameWidth: 80, frameHeight: 80 });
+
+        // Enemies
+        this.load.spritesheet('crow', 'assets/images/enemies/crow-fly.png', { frameWidth: 48, frameHeight: 48 });
+        this.load.spritesheet('bird', 'assets/images/enemies/flying-bird.png', { frameWidth: 32, frameHeight: 32 });
+
+        // Gems (16x16 frames)
+        this.load.spritesheet('gem', 'assets/images/collectibles/gems.png', { frameWidth: 16, frameHeight: 16 });
+
+        // Platform tileset
+        this.load.image('tileset', 'assets/images/platforms/tileset.png');
     }
 
     createLoadingBar() {
@@ -385,16 +413,61 @@ class BootScene extends Phaser.Scene {
     }
 
     createAnimations() {
-        const anims = ['idle', 'run', 'jump', 'fall', 'wall_slide'];
-        anims.forEach(key => {
-            this.anims.create({
-                key: key,
-                frames: [{ key: 'player' }],
-                frameRate: 10,
-                repeat: -1
-            });
+        // Player animations
+        this.anims.create({
+            key: 'idle',
+            frames: this.anims.generateFrameNumbers('player_idle', { start: 0, end: 3 }),
+            frameRate: 8,
+            repeat: -1
+        });
+        this.anims.create({
+            key: 'run',
+            frames: this.anims.generateFrameNumbers('player_run', { start: 0, end: 9 }),
+            frameRate: 12,
+            repeat: -1
+        });
+        this.anims.create({
+            key: 'jump',
+            frames: this.anims.generateFrameNumbers('player_jump', { start: 0, end: 2 }),
+            frameRate: 10,
+            repeat: 0
+        });
+        this.anims.create({
+            key: 'fall',
+            frames: this.anims.generateFrameNumbers('player_jump', { start: 3, end: 5 }),
+            frameRate: 8,
+            repeat: -1
+        });
+        this.anims.create({
+            key: 'wall_slide',
+            frames: this.anims.generateFrameNumbers('player_cling', { start: 0, end: 0 }),
+            frameRate: 1,
+            repeat: -1
         });
 
+        // Enemy animations
+        this.anims.create({
+            key: 'crow_fly',
+            frames: this.anims.generateFrameNumbers('crow', { start: 0, end: 1 }),
+            frameRate: 8,
+            repeat: -1
+        });
+        this.anims.create({
+            key: 'bird_fly',
+            frames: this.anims.generateFrameNumbers('bird', { start: 0, end: 6 }),
+            frameRate: 10,
+            repeat: -1
+        });
+
+        // Gem animation (cyan gems = frames 8-15 in row 1)
+        this.anims.create({
+            key: 'gem_spin',
+            frames: this.anims.generateFrameNumbers('gem', { start: 8, end: 15 }),
+            frameRate: 10,
+            repeat: -1
+        });
+
+        // Flag animation (procedural)
         this.anims.create({
             key: 'flag_wave',
             frames: [{ key: 'flag' }],

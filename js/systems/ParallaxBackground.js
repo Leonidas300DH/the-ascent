@@ -2,179 +2,72 @@ class ParallaxBackground {
     constructor(scene) {
         this.scene = scene;
         this.layers = [];
-        this.skyGraphics = null;
-        this.stars = [];
         this.lastCameraY = 0;
-        this.cloudDriftOffset = 0;
-        // Start with random slow drift direction (-1 or 1)
-        this.baseCloudDirection = Math.random() > 0.5 ? 1 : -1;
-        this.baseCloudSpeed = 0.15; // Slow base drift
     }
 
     create() {
-        // Sky gradient background
-        this.skyGraphics = this.scene.add.graphics();
-        this.skyGraphics.setDepth(-100);
-        this.updateSkyGradient(0);
+        // Create tiled image layers for each background element
+        this.skyLayer = this.createTiledLayer('bg_sky', 0, -100);
+        this.farMountainsLayer = this.createTiledLayer('bg_far_mountains', 0.1, -30);
+        this.mountainsLayer = this.createTiledLayer('bg_mountains', 0.2, -25);
+        this.farCloudsLayer = this.createTiledLayer('bg_far_clouds', 0.15, -20);
+        this.nearCloudsLayer = this.createTiledLayer('bg_near_clouds', 0.3, -15);
+        this.treesLayer = this.createTiledLayer('bg_trees', 0.4, -10);
 
-        // Create stars
-        for (let i = 0; i < 100; i++) {
-            const star = this.scene.add.circle(
-                Phaser.Math.Between(0, GAME_WIDTH),
-                Phaser.Math.Between(-LEVEL.SUMMIT_ALTITUDE - 500, 600),
-                Phaser.Math.Between(1, 2),
-                0xFFFFFF
-            );
-            star.setDepth(-99);
-            star.setAlpha(0);
-            this.stars.push(star);
-        }
-
-        // Layer 1: Distant mountains
-        this.createMountainLayer(0, 0.1, 0x2D3A4A, -30);
-
-        // Layer 2: Mid clouds
-        this.createCloudLayer(1, 0.25, -20);
-
-        // Layer 3: Near clouds
-        this.createCloudLayer(2, 0.4, -10);
+        // Store layer info for parallax updates
+        this.layers = [
+            { sprite: this.skyLayer, parallaxFactor: 0 },
+            { sprite: this.farMountainsLayer, parallaxFactor: 0.1 },
+            { sprite: this.mountainsLayer, parallaxFactor: 0.2 },
+            { sprite: this.farCloudsLayer, parallaxFactor: 0.15 },
+            { sprite: this.nearCloudsLayer, parallaxFactor: 0.3 },
+            { sprite: this.treesLayer, parallaxFactor: 0.4 }
+        ];
     }
 
-    createMountainLayer(index, speed, color, depth) {
-        const graphics = this.scene.add.graphics();
-        graphics.setDepth(depth);
+    createTiledLayer(key, parallaxFactor, depth) {
+        // Calculate vertical tiling to cover the entire game world
+        const worldHeight = LEVEL.SUMMIT_ALTITUDE + GAME_HEIGHT + 1000;
 
-        graphics.fillStyle(color);
+        // Create tileSprite that covers game width and world height
+        const layer = this.scene.add.tileSprite(
+            GAME_WIDTH / 2,
+            GAME_HEIGHT / 2,
+            GAME_WIDTH,
+            GAME_HEIGHT,
+            key
+        );
 
-        const peaks = [];
-        for (let x = -200; x < GAME_WIDTH + 400; x += Phaser.Math.Between(80, 160)) {
-            peaks.push({
-                x: x,
-                height: Phaser.Math.Between(200, 450),
-                sharpness: Math.random() * 0.5 + 0.5
-            });
-        }
+        layer.setOrigin(0.5, 0.5);
+        layer.setDepth(depth);
+        layer.setScrollFactor(0); // Fixed to camera, we handle parallax manually
 
-        for (let y = -LEVEL.SUMMIT_ALTITUDE - 1000; y < 1000; y += 500) {
-            graphics.beginPath();
-            graphics.moveTo(-200, y + 500);
-
-            for (const peak of peaks) {
-                const variance = Math.sin(y * 0.005 + peak.x) * 60;
-                graphics.lineTo(peak.x, y - peak.height + variance);
-            }
-
-            graphics.lineTo(GAME_WIDTH + 200, y + 500);
-            graphics.closePath();
-            graphics.fill();
-        }
-
-        this.layers.push({
-            graphics,
-            speed,
-            startY: 0,
-            isCloud: false
-        });
-    }
-
-    createCloudLayer(index, speed, depth) {
-        const container = this.scene.add.container(0, 0);
-        container.setDepth(depth);
-
-        // Store clouds for wrap-around
-        const clouds = [];
-
-        for (let y = -LEVEL.SUMMIT_ALTITUDE - 500; y < 800; y += 150) {
-            for (let i = 0; i < 3; i++) {
-                const cloud = this.scene.add.sprite(
-                    Phaser.Math.Between(0, GAME_WIDTH),
-                    y + Phaser.Math.Between(-50, 50),
-                    'cloud'
-                );
-                cloud.setAlpha(0.4 + Math.random() * 0.3);
-                cloud.setScale(0.6 + Math.random() * 0.8);
-                cloud.baseX = cloud.x; // Store original X for wrapping
-                container.add(cloud);
-                clouds.push(cloud);
-            }
-        }
-
-        this.layers.push({
-            container,
-            speed,
-            startY: 0,
-            isCloud: true,
-            clouds: clouds
-        });
-    }
-
-    updateSkyGradient(altitude) {
-        const progress = Math.min(1, altitude / LEVEL.SUMMIT_ALTITUDE);
-
-        const baseColor = Phaser.Display.Color.ValueToColor(VISUALS.SKY_COLOR_BASE);
-        const summitColor = Phaser.Display.Color.ValueToColor(VISUALS.SKY_COLOR_SUMMIT);
-
-        const r = Phaser.Math.Linear(baseColor.red, summitColor.red, progress);
-        const g = Phaser.Math.Linear(baseColor.green, summitColor.green, progress);
-        const b = Phaser.Math.Linear(baseColor.blue, summitColor.blue, progress);
-
-        const currentColor = Phaser.Display.Color.GetColor(r, g, b);
-
-        this.skyGraphics.clear();
-        this.skyGraphics.fillStyle(currentColor);
-        this.skyGraphics.fillRect(-100, -LEVEL.SUMMIT_ALTITUDE - 1000, GAME_WIDTH + 200, LEVEL.SUMMIT_ALTITUDE + 2000);
-
-        const starAlpha = Math.max(0, (progress - 0.2) / 0.8);
-        this.stars.forEach(star => {
-            star.setAlpha(starAlpha * (0.3 + Math.random() * 0.7));
-        });
+        return layer;
     }
 
     update(cameraY, playerAltitude) {
-        this.updateSkyGradient(playerAltitude);
+        // Update each layer's tile position for parallax effect
+        this.layers.forEach(layer => {
+            // Shift the tile Y position based on camera and parallax factor
+            layer.sprite.tilePositionY = cameraY * layer.parallaxFactor;
+        });
 
-        const deltaY = cameraY - this.lastCameraY;
-
-        // Cloud drift: base slow drift + wind gusts
-        let windDirection = this.baseCloudDirection;
-        if (this.scene.windSystem && this.scene.windSystem.getDirection() !== 0) {
-            // During wind, use wind direction (faster)
-            windDirection = this.scene.windSystem.getDirection();
-            this.cloudDriftOffset += windDirection * 0.5;
+        // Fade out trees at higher altitudes (trees only at low altitude)
+        const treeFadeStart = 500;
+        const treeFadeEnd = 2000;
+        if (playerAltitude < treeFadeStart) {
+            this.treesLayer.setAlpha(1);
+        } else if (playerAltitude > treeFadeEnd) {
+            this.treesLayer.setAlpha(0);
         } else {
-            // Slow ambient drift
-            this.cloudDriftOffset += windDirection * this.baseCloudSpeed;
+            const fadeProgress = (playerAltitude - treeFadeStart) / (treeFadeEnd - treeFadeStart);
+            this.treesLayer.setAlpha(1 - fadeProgress);
         }
 
-        this.layers.forEach((layer, index) => {
-            const scrollAmount = deltaY * (1 - VISUALS.PARALLAX_SPEEDS[index]);
-
-            if (layer.graphics) {
-                layer.graphics.y += scrollAmount;
-            } else if (layer.container) {
-                layer.container.y += scrollAmount;
-
-                // Apply horizontal cloud drift with WRAP-AROUND
-                if (layer.isCloud && layer.clouds) {
-                    const layerDrift = this.cloudDriftOffset * (0.5 + index * 0.2);
-
-                    layer.clouds.forEach(cloud => {
-                        // Calculate new X with wrap-around
-                        let newX = cloud.baseX + layerDrift;
-
-                        // Wrap around screen edges
-                        const margin = 150;
-                        if (newX > GAME_WIDTH + margin) {
-                            newX = newX - (GAME_WIDTH + margin * 2);
-                        } else if (newX < -margin) {
-                            newX = newX + (GAME_WIDTH + margin * 2);
-                        }
-
-                        cloud.x = newX;
-                    });
-                }
-            }
-        });
+        // Add subtle horizontal cloud drift
+        const time = this.scene.time.now * 0.0001;
+        this.farCloudsLayer.tilePositionX = Math.sin(time) * 20;
+        this.nearCloudsLayer.tilePositionX = Math.sin(time * 1.3) * 30;
 
         this.lastCameraY = cameraY;
     }

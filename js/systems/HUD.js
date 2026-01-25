@@ -6,12 +6,15 @@ class HUD {
         this.playerMarker = null;
         this.altitudeText = null;
         this.timerText = null;
-        this.startTime = 0;
+        this.scoreText = null;
+        this.startTime = null;
+        this.timerStarted = false;
     }
 
     create() {
-        // Record start time
-        this.startTime = this.scene.time.now;
+        // Timer will be started on first player movement
+        this.startTime = null;
+        this.timerStarted = false;
         // Fixed HUD container
         this.container = this.scene.add.container(0, 0);
         this.container.setScrollFactor(0);
@@ -80,6 +83,17 @@ class HUD {
         });
         this.timerText.setOrigin(1, 0);
         this.container.add(this.timerText);
+
+        // Score display (below timer)
+        this.scoreText = this.scene.add.text(GAME_WIDTH - 20, 50, 'Score: 0', {
+            fontFamily: 'monospace',
+            fontSize: '18px',
+            color: '#FFD700',
+            stroke: '#000000',
+            strokeThickness: 3
+        });
+        this.scoreText.setOrigin(1, 0);
+        this.container.add(this.scoreText);
     }
 
     update(playerAltitude) {
@@ -116,14 +130,28 @@ class HUD {
         this.altitudeText.setText(`${displayAltitude}m`);
         this.altitudeText.y = Math.max(y + 20, Math.min(GAME_HEIGHT - 60, markerY - 7));
 
-        // Update timer
-        const elapsed = this.scene.time.now - this.startTime;
-        const minutes = Math.floor(elapsed / 60000);
-        const seconds = Math.floor((elapsed % 60000) / 1000);
-        this.timerText.setText(`${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`);
+        // Update timer (only if started)
+        if (this.timerStarted && this.startTime !== null) {
+            const elapsed = this.scene.time.now - this.startTime;
+            const minutes = Math.floor(elapsed / 60000);
+            const seconds = Math.floor((elapsed % 60000) / 1000);
+            this.timerText.setText(`${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`);
+        }
+        // Timer stays at 00:00 until started
+    }
+
+    // Start the timer (called on first player movement)
+    startTimer() {
+        if (!this.timerStarted) {
+            this.timerStarted = true;
+            this.startTime = this.scene.time.now;
+        }
     }
 
     getElapsedTime() {
+        if (!this.timerStarted || this.startTime === null) {
+            return 0;
+        }
         return this.scene.time.now - this.startTime;
     }
 
@@ -131,5 +159,9 @@ class HUD {
         const minutes = Math.floor(ms / 60000);
         const seconds = Math.floor((ms % 60000) / 1000);
         return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+    }
+
+    updateScore(score) {
+        this.scoreText.setText(`Score: ${score}`);
     }
 }

@@ -11,6 +11,7 @@ class GameScene extends Phaser.Scene {
         this.isGameOver = false;
         this.hasWon = false;
         this.maxAltitudeReached = 0;
+        this.hasPlayerMoved = false; // Timer starts on first movement
 
         // Set world bounds (very tall for climbing)
         this.physics.world.setBounds(0, -LEVEL.SUMMIT_ALTITUDE - 500, GAME_WIDTH, LEVEL.SUMMIT_ALTITUDE + 1000);
@@ -44,6 +45,14 @@ class GameScene extends Phaser.Scene {
         this.avalancheSystem = new AvalancheSystem(this);
         this.coldSystem = new ColdSystem(this);
 
+        // Create enemy manager
+        this.enemyManager = new EnemyManager(this);
+        this.enemyManager.create();
+
+        // Create collectible manager
+        this.collectibleManager = new CollectibleManager(this);
+        this.collectibleManager.create();
+
         // Create HUD
         this.hud = new HUD(this);
         this.hud.create();
@@ -76,6 +85,20 @@ class GameScene extends Phaser.Scene {
     update(time, delta) {
         if (this.isGameOver || this.hasWon) return;
 
+        // Detect first player movement to start timer
+        if (!this.hasPlayerMoved) {
+            const cursors = this.player.cursors;
+            const touch = this.touchControls ? this.touchControls.getControls() : null;
+            const keyboardInput = cursors.left.isDown || cursors.right.isDown ||
+                cursors.up.isDown || this.player.jumpKey.isDown;
+            const touchInput = touch && (touch.left || touch.right || touch.jump);
+
+            if (keyboardInput || touchInput) {
+                this.hasPlayerMoved = true;
+                this.hud.startTimer();
+            }
+        }
+
         // Update player
         this.player.update(time, delta);
 
@@ -101,6 +124,11 @@ class GameScene extends Phaser.Scene {
         this.windSystem.update();
         this.avalancheSystem.update();
         this.coldSystem.update(delta);
+
+        // Update enemy and collectible managers
+        this.enemyManager.update(time, delta, this.cameras.main.scrollY, playerAltitude);
+        this.collectibleManager.update(this.cameras.main.scrollY);
+
         this.hud.update(playerAltitude);
 
         // Update touch controls (must poll every frame)

@@ -2,11 +2,17 @@ class Player {
     constructor(scene, x, y) {
         this.scene = scene;
 
-        // Create sprite
-        this.sprite = scene.physics.add.sprite(x, y, 'player');
+        // Create sprite using idle spritesheet as base texture
+        this.sprite = scene.physics.add.sprite(x, y, 'player_idle');
         this.sprite.setCollideWorldBounds(false);
-        this.sprite.body.setSize(14, 28);
-        this.sprite.body.setOffset(5, 4);
+
+        // Scale from 80x80 to ~32x32 display size (0.4 scale)
+        this.sprite.setScale(0.4);
+
+        // Adjust physics body for scaled sprite
+        // Character within 80x80 frame is roughly centered, ~30x60 pixels
+        this.sprite.body.setSize(30, 60);
+        this.sprite.body.setOffset(25, 18);
         this.sprite.setDepth(100);
 
         // Physics

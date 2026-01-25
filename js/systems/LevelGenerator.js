@@ -82,6 +82,11 @@ class LevelGenerator {
             const platform = new Platform(this.scene, x, y, width, type);
             this.platforms.push(platform);
             this.addPlatformCollision(platform);
+
+            // Spawn gems on some platforms (20% chance)
+            if (this.scene.collectibleManager && Math.random() < 0.2) {
+                this.scene.collectibleManager.spawnGem(x, y - 40);
+            }
         }
 
         this.currentRowY = newRowY;
